@@ -71,14 +71,25 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     df = df[df["Date"].dt.strftime('%Y-%m-%d') == today]
 
     if df.empty:
-        await update.message.reply_text("Không có ảnh nào được gửi trong ngày {}.".format(today))
+        await update.message.reply_text(f"Không có ảnh nào được gửi trong ngày {today}.")
         return
 
     df["Photo Count"] = pd.to_numeric(df["Photo Count"], errors="coerce").fillna(0).astype(int)
-    summary = df.groupby("User")["Photo Count"].sum().to_dict()
-    lines = [f"{user}: {count} photo(s)" for user, count in summary.items()]
-    result = "Report for {}:\n{}" .format(today, "\n".join(lines))
+
+    # Tạo cột Buổi (SÁNG/CHIỀU)
+    df["Buổi"] = df["Date"].dt.hour.apply(lambda h: "SÁNG" if h < 12 else "CHIỀU")
+
+    # Gộp theo User và Buổi
+    grouped = df.groupby(["User", "Buổi"])["Photo Count"].sum().reset_index()
+
+    # Tạo nội dung kết quả
+    lines = []
+    for _, row in grouped.iterrows():
+        lines.append(f"{row['User']} - {row['Buổi']}: {row['Photo Count']} photo(s)")
+
+    result = f"Report for {today}:\n" + "\n".join(lines)
     await update.message.reply_text(result)
+
 
 # Handlers
 application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
