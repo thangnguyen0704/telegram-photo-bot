@@ -64,18 +64,19 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-    df["Group ID"] = df["Group ID"].astype(str)
-    df = df[df["Group ID"] == str(update.effective_chat.id)]
-    df = df[df["Date"].dt.strftime('%Y-%m-%d') == today]
+df["Group ID"] = df["Group ID"].astype(str)
+df = df[df["Group ID"] == str(update.effective_chat.id)]
+df = df[df["Date"].dt.strftime('%Y-%m-%d') == today]
 
-    if df.empty:
-        await update.message.reply_text("Không có ảnh nào được gửi trong ngày {}.".format(today))
-        return
+if df.empty:
+    await update.message.reply_text("Không có ảnh nào được gửi trong ngày {}.".format(today))
+    return
 
-    summary = df["User"].value_counts().to_dict()
-    lines = [f"{user}: {count} photo(s)" for user, count in summary.items()]
-    result = "Report for {}:{}".format(today, "\n".join(lines))
-    await update.message.reply_text(result)
+df["Photo Count"] = pd.to_numeric(df["Photo Count"], errors="coerce").fillna(0).astype(int)
+summary = df.groupby("User")["Photo Count"].sum().to_dict()
+lines = [f"{user}: {count} photo(s)" for user, count in summary.items()]
+result = "Report for {}:\n{}".format(today, "\n".join(lines))
+await update.message.reply_text(result)
 
 # Handlers
 application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
