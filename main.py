@@ -74,8 +74,7 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     summary = df["User"].value_counts().to_dict()
     lines = [f"{user}: {count} photo(s)" for user, count in summary.items()]
-    result = "Report for {}:
-{}".format(today, "\n".join(lines))
+    result = "Report for {}:{}".format(today, "\n".join(lines))
     await update.message.reply_text(result)
 
 # Handlers
