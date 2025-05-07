@@ -18,13 +18,13 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", sco
 client = gspread.authorize(creds)
 sheet = client.open_by_key(os.getenv("GOOGLE_SHEET_ID")).sheet1
 
-# Hàm ghi nhận ảnh
+# Ghi nhận ảnh
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.first_name
     date = datetime.datetime.now().strftime('%Y-%m-%d')
     sheet.append_row([date, user, 1])
 
-# Báo cáo ngày cụ thể
+# Báo cáo
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     if args:
@@ -44,15 +44,18 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
 " + "\n".join([f"{k}: {v} ảnh" for k, v in summary.items()])
     await update.message.reply_text(result)
 
-# Gửi báo cáo hàng ngày
+# Ping bot
+async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("✅ Bot vẫn sống ngon lành!")
+
+# Lịch hàng ngày
 def daily_report(app):
     records = sheet.get_all_records()
     today = datetime.datetime.now()
     cutoff = today - datetime.timedelta(days=30)
     filtered = [r for r in records if datetime.datetime.strptime(r["Ngày"], "%Y-%m-%d") >= cutoff]
-    # Tùy chỉnh nếu muốn lưu CSV tại đây hoặc gửi qua Telegram
 
-# Scheduler tự động
+# Scheduler
 def start_scheduler(app):
     scheduler = BackgroundScheduler()
     scheduler.add_job(lambda: daily_report(app), 'cron', hour=23, minute=59)
@@ -64,5 +67,6 @@ if __name__ == '__main__':
     app = ApplicationBuilder().token(bot_token).build()
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(CommandHandler("baocao", report))
+    app.add_handler(CommandHandler("ping", ping))
     start_scheduler(app)
     app.run_polling()
