@@ -49,12 +49,12 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if r["Date"] == date:
             group = r["Group"]
             user = r["User"]
-            key = f"[{group}] {user}"
+            key = "[{}] {}".format(group, user)
             summary[key] = summary.get(key, 0) + int(r["Photo Count"])
     if not summary:
-        await update.message.reply_text(f"No photos on {date}.")
+        await update.message.reply_text("No photos on {}.".format(date))
         return
-    lines = [f"{k}: {v} photo(s)" for k, v in summary.items()]
+    lines = ["{}: {} photo(s)".format(k, v) for k, v in summary.items()]
     result = "Report for {}:
 {}".format(date, "
 ".join(lines))
