@@ -45,8 +45,7 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     lines = [f"{k}: {v} photo(s)" for k, v in summary.items()]
-    result = "Report for {}:
-{}".format(date, "\n".join(lines))
+    result = "Report for {}:{}".format(date, "\n".join(lines))
     await update.message.reply_text(result)
 
 # Khởi tạo app
