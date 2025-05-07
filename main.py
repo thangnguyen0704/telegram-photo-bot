@@ -36,45 +36,32 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group = update.effective_chat.title or update.effective_chat.username or "PrivateChat"
     sheet.append_row([date, group, user, 1])
 
-# Report command
+# Report command - filtered by current group
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     if args:
         date = args[0]
     else:
         date = datetime.datetime.now().strftime('%Y-%m-%d')
+
+    current_group = update.effective_chat.title or update.effective_chat.username or "PrivateChat"
     records = sheet.get_all_records()
     summary = {}
     for r in records:
-        if r["Date"] == date:
-            group = r["Group"]
+        if r["Date"] == date and r["Group"] == current_group:
             user = r["User"]
-            key = "[{}] {}".format(group, user)
-            summary[key] = summary.get(key, 0) + int(r["Photo Count"])
+            summary[user] = summary.get(user, 0) + int(r["Photo Count"])
     if not summary:
         await update.message.reply_text("No photos on {}.".format(date))
         return
     lines = ["{}: {} photo(s)".format(k, v) for k, v in summary.items()]
-    result = "Report for {}:\n{}".format(date, "\n".join(lines))
+    result = "Report for {}:
+{}".format(date, "\n".join(lines))
     await update.message.reply_text(result)
 
 # Ping command
 async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Bot is alive!")
-
-# Daily summary function
-def daily_report(app):
-    ensure_headers()
-    records = sheet.get_all_records()
-    today = datetime.datetime.now()
-    cutoff = today - datetime.timedelta(days=30)
-    _ = [r for r in records if datetime.datetime.strptime(r["Date"], "%Y-%m-%d") >= cutoff]
-
-# Schedule daily job
-def start_scheduler(app):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: daily_report(app), 'cron', hour=23, minute=59)
-    scheduler.start()
 
 # Run the bot
 if __name__ == '__main__':
@@ -83,5 +70,4 @@ if __name__ == '__main__':
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(CommandHandler("report", report))
     app.add_handler(CommandHandler("ping", ping))
-    start_scheduler(app)
     app.run_polling()
