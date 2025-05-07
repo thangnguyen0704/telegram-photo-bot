@@ -18,11 +18,23 @@ creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", sco
 client = gspread.authorize(creds)
 sheet = client.open_by_key(os.getenv("GOOGLE_SHEET_ID")).sheet1
 
+# Ensure headers exist
+def ensure_headers():
+    try:
+        headers = sheet.row_values(1)
+        if headers != ["Date", "Group", "User", "Photo Count"]:
+            sheet.clear()
+            sheet.append_row(["Date", "Group", "User", "Photo Count"])
+    except Exception as e:
+        logger.error(f"Error ensuring headers: {e}")
+
 # Handle photo uploads
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    ensure_headers()
     user = update.effective_user.first_name
     date = datetime.datetime.now().strftime('%Y-%m-%d')
-    sheet.append_row([date, user, 1])
+    group = update.effective_chat.title or update.effective_chat.username or "PrivateChat"
+    sheet.append_row([date, group, user, 1])
 
 # Report command
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -34,13 +46,16 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     records = sheet.get_all_records()
     summary = {}
     for r in records:
-        if r["Ngày"] == date:
-            name = r["Tên người"]
-            summary[name] = summary.get(name, 0) + int(r["Số ảnh"])
+        if r["Date"] == date:
+            group = r["Group"]
+            user = r["User"]
+            key = f"[{group}] {user}"
+            summary[key] = summary.get(key, 0) + int(r["Photo Count"])
     if not summary:
         await update.message.reply_text(f"No photos on {date}.")
         return
-    result = f"Report for {date}:\n" + "\n".join([f"{k}: {v} photo(s)" for k, v in summary.items()])
+    result = f"Report for {date}:
+" + "\n".join([f"{k}: {v} photo(s)" for k, v in summary.items()])
     await update.message.reply_text(result)
 
 # Ping command
@@ -49,10 +64,11 @@ async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Daily summary function
 def daily_report(app):
+    ensure_headers()
     records = sheet.get_all_records()
     today = datetime.datetime.now()
     cutoff = today - datetime.timedelta(days=30)
-    filtered = [r for r in records if datetime.datetime.strptime(r["Ngày"], "%Y-%m-%d") >= cutoff]
+    _ = [r for r in records if datetime.datetime.strptime(r["Date"], "%Y-%m-%d") >= cutoff]
 
 # Schedule daily job
 def start_scheduler(app):
