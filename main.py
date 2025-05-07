@@ -37,7 +37,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_name = update.effective_chat.title or ""
     user = "{} - {}".format(update.effective_user.full_name, update.effective_user.username or update.effective_user.id)
     photo_count = len(update.message.photo)
-    sheet.append_row([timestamp, chat_id, chat_name, user, str(photo_count)])
+    sheet.append_row([timestamp, chat_id, chat_name, user, photo_count])
 
 # Trả báo cáo
 async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
