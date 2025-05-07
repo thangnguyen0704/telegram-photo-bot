@@ -48,8 +48,7 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Không có ảnh nào được gửi trong ngày hôm nay.")
         return
     lines = [f"{k}: {v} photo(s)" for k, v in summary.items()]
-    await update.message.reply_text("Report for {}:
-{}".format(date, "\n".join(lines)))
+    await update.message.reply_text("Report for {}:{}".format(date, "\n".join(lines)))
 
 # Add handlers
 application.add_handler(MessageHandler(filters.PHOTO, handle_photo))
