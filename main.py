@@ -40,7 +40,8 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not summary:
         await update.message.reply_text(f"Không có ảnh nào ngày {date}.")
         return
-    result = f"Báo cáo ngày {date}:\n" + "\\n".join([f"{k}: {v} ảnh" for k, v in summary.items()])
+    result = f"Báo cáo ngày {date}:
+" + "\n".join([f"{k}: {v} ảnh" for k, v in summary.items()])
     await update.message.reply_text(result)
 
 # Gửi báo cáo hàng ngày
