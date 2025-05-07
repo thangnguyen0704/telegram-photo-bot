@@ -27,16 +27,18 @@ application = Application.builder().token(BOT_TOKEN).build()
 # FastAPI app
 app = FastAPI()
 
-# Ghi nhận ảnh gửi
+# Ghi nhận ảnh gửi (đếm đúng 1 ảnh, kể cả forward)
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.photo:
         return
+
     vn_tz = timezone(timedelta(hours=7))
     timestamp = datetime.now(vn_tz).strftime("%Y-%m-%d %H:%M:%S")
     chat_id = str(update.effective_chat.id)
     chat_name = update.effective_chat.title or ""
     user = "{} - {}".format(update.effective_user.full_name, update.effective_user.username or update.effective_user.id)
-    photo_count = len(update.message.photo)
+
+    photo_count = 1  # Mỗi message có thể chứa nhiều size ảnh, chỉ đếm 1 ảnh thôi
     sheet.append_row([timestamp, chat_id, chat_name, user, photo_count])
 
 # Trả báo cáo
@@ -75,7 +77,7 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     df["Photo Count"] = pd.to_numeric(df["Photo Count"], errors="coerce").fillna(0).astype(int)
     summary = df.groupby("User")["Photo Count"].sum().to_dict()
     lines = [f"{user}: {count} photo(s)" for user, count in summary.items()]
-    result = "Report for {}:\n{}".format(today, "\n".join(lines))
+    result = "Report for {}:\n{}" .format(today, "\n".join(lines))
     await update.message.reply_text(result)
 
 # Handlers
