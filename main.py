@@ -59,7 +59,7 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     headers = data[0]
     df = pd.DataFrame(data[1:], columns=headers)
 
-    if "Date" not in df.columns or "Group ID" not in df.columns or "User" not in df.columns:
+    if "Date" not in df.columns or "Group ID" not in df.columns or "User" not in df.columns or "Photo Count" not in df.columns:
         await update.message.reply_text("Google Sheet thiếu cột bắt buộc.")
         return
 
