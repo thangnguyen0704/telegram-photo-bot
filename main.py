@@ -41,7 +41,8 @@ async def report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"No photos on {date}.")
         return
     result = f"Report for {date}:
-" + "\n".join([f"{k}: {v} photo(s)" for k, v in summary.items()])
+" + "
+".join([f"{k}: {v} photo(s)" for k, v in summary.items()])
     await update.message.reply_text(result)
 
 # Ping command
